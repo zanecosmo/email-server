@@ -1,0 +1,15 @@
+{
+  "name": "email-server",
+  "version": "1.0.0",
+  "description": "Transferring my email code to an AWS Lambda Function.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "nodemailer": "^6.9.5"
+  }
+}
