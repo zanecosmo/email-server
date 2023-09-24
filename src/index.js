@@ -38,17 +38,44 @@ const compareObjects = (obj1, obj2) => {
   return keys1.every((key, index) => key === keys2[index]);
 };
 
+const createResponse = (statusCode, message) => {
+  return {
+    statusCode: statusCode,
+    body: message
+  };
+};
+
+const allowedOrigins = [
+    "https://zanecosmo.com",
+    "http://127.0.0.1:5501"
+  ];
+
+const verifyOrigin = (origin) => allowedOrigins.includes(origin) ? origin : "";
+
 exports.handler = async (event) => {
-  if (event.body === null || event.body === undefined) {
-    return { statusCode: 500, body: "INTERNAL SERVER ERROR" };
+
+  if (event.httpMethod === "OPTIONS") {
+    const corsHeaders = event.headers['Access-Control-Request-Headers'].split(',');
+
+    const responseHeaders = {
+      'Access-Control-Allow-Headers': corsHeaders.join(', '),
+      'Access-Control-Allow-Origin': verifyOrigin(event.headers.origin)
+    };
+
+    return {
+      statusCode: 200,
+      headers: responseHeaders
+    };
   };
   
-  console.log(event);
+  if (event.body === null || event.body === undefined) {
+    return createResponse(500, "INTERNAL SERVER ERROR");
+  };
+  
   const message = JSON.parse(event.body);
-  console.log(message);
   
   if (!compareObjects(message, refereneObj)) {
-    return { statusCode: 400, body: "INCORRECT OBJECT FORMAT. DID NOT SEND" }
+    return createResponse(400, "INCORRECT OBJECT FORMAT. DID NOT SEND");
   };
 
   for (let key in message) {
@@ -58,15 +85,15 @@ exports.handler = async (event) => {
   };
 
   if (Object.values(message).every(val => val === "NO ENTRY")) {
-    return { statusCode: 400, body: "MESSAGE EMPTY. DID NOT SEND" }
+    return createResponse(406, "MESSAGE EMPTY. DID NOT SEND");
   };
 
   try {
     await sendEmail(message);
-    return { statusCode: 200, body: "MESSAGE SENT" };;
+    return createResponse(200, "MESSAGE SENT");
   }
 
   catch (error) {
-    return { statusCode: 500, body: "FAILED TO SEND MESSAGE" };
+    return { statusCode: 500, body: "INTERNAL SERVER ERROR" };
   };
 };
